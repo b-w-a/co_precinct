@@ -10,7 +10,7 @@
 library(tidyverse)
 
 
-# read data 
+# read data -----
 data <- read_csv("/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/clean_results/analysis/merged_2016.csv")
 
 
@@ -29,7 +29,7 @@ ggsave("/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/weighted_co.
 
 
 # EI ----------
-
+library(ei)
 library(eiCompare)
 df <- data %>% dplyr::select(pct_clinton, pct_trump, votes , pct_latino) %>% na.omit()
 
@@ -40,12 +40,12 @@ cands <- c("pct_clinton", "pct_trump", "pct_other")
 groups <- c("~ pct_latino", "~ pct_nonlatino") 
 table_names <- c("EI: Pct Latino", "EI: Pct Non Latino")
 
-# EI with compare
+# EI with compare -----
 resultsCO <- ei_est_gen(cands, groups,
                         "votes", data = COdf2, 
                         table_names = table_names)
 
-# EI with EI 
+# EI with EI -----
 model_clinton <- pct_clinton ~ pct_latino
 model_trump <- pct_trump ~ pct_latino
 
@@ -60,6 +60,31 @@ res_trump <- eiread(ei_trump, "maggs")
 pe_trump <- res_trump[1]
 se_trump <- res_trump[3]
 
+# Density plot ------
+model_clinton <- pct_clinton ~ pct_latino
+
+ei_clinton <- ei(model_clinton, total="votes", erho=.5, data=df)
+
+beta_clinton <- eiread(ei_clinton, "betab")
+df_beta <- data.frame(beta = beta_clinton)
+
+ei_est <- eiread(ei_clinton, "maggs")[1]
+
+plot <- ggplot(df_beta, aes(x=beta)) + geom_density() +
+  geom_vline(xintercept = .67, col = "red", lty = 2) + theme_bw() +
+  geom_vline(xintercept = .81, col = "turquoise") + 
+  geom_vline(xintercept = ei_est, lty = 2) + 
+  annotate("text", x = .63, y = 5.5, label = "Exit Poll \n Estimate = .67", size = 3) +
+  annotate("text", x = .77, y = 7.5, label = "Latino\n Decisions\n Estimate=.81", size = 3) +
+  annotate("text", x = .9, y = 7.5, label = "EI Estimate\n = .83", size = 3) + 
+  labs(x = "Estimated Latino Vote for Clinton", y = "Density", title = "Colorado Presidential Latino Vote") 
+
+ggsave("/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/density_co.png", plot, height = 8, width = 8)
+
+pvalue_exit <- mean(df_beta$beta < .67, na.rm = T)  
+
+pvalue_ld <- mean(df_beta$beta < .81, na.rm = T)
+
 
 
 ei_all <- data.frame(geography = c("Entire Sample","Entire Sample"),
@@ -68,7 +93,7 @@ ei_all <- data.frame(geography = c("Entire Sample","Entire Sample"),
                      std_error = c(se_clinton,se_trump))
 
 
-# 2012 and 2016 stuff 
+# 2012 and 2016 stuff -----
 
 data <- read_csv("/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/clean_results/analysis/joined_2012_2016_w_wts.csv")
 
