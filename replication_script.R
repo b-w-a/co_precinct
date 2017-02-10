@@ -45,6 +45,8 @@ resultsCO <- ei_est_gen(cands, groups,
                         "votes", data = COdf2, 
                         table_names = table_names)
 
+write_csv(resultsCO, "/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/co_precinct/2016_ei_estimates.csv")
+
 # EI with EI -----
 model_clinton <- pct_clinton ~ pct_latino
 model_trump <- pct_trump ~ pct_latino
@@ -65,6 +67,7 @@ model_clinton <- pct_clinton ~ pct_latino
 
 ei_clinton <- ei(model_clinton, total="votes", erho=.5, data=df)
 
+
 beta_clinton <- eiread(ei_clinton, "betab")
 df_beta <- data.frame(beta = beta_clinton)
 
@@ -84,6 +87,8 @@ ggsave("/Users/bryanwilcox/Dropbox/2016 Voter Turnout/data/colorado/density_co.p
 pvalue_exit <- mean(df_beta$beta < .67, na.rm = T)  
 
 pvalue_ld <- mean(df_beta$beta < .81, na.rm = T)
+
+pvalue_ei <- mean(df_beta$beta < ei_est, na.rm = T)
 
 
 
